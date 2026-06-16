@@ -1,0 +1,32 @@
+name: Test basic HCL formatting
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create test HCL file with formatting issues
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/hcl-test"
+          cat > "$GITHUB_WORKSPACE/hcl-test/main.tf" << 'EOF'
+          resource "aws_instance" "example" {
+          ami           = "ami-0c55b159cbfafe1f0"
+          instance_type = "t2.micro"
+          }
+          EOF
+
+      - id: action
+        uses: .
+        with:
+          dir: ./hcl-test
+          write: "true"
+          recursive: "true"
+
+      - name: Assert action completed
+        env:
+          FILES_CHANGED: ${{ steps.action.outputs.files_changed }}
+        run: |
+          echo "files_changed: $FILES_CHANGED"
+          echo "PASS: action completed successfully"

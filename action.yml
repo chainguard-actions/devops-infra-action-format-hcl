@@ -1,0 +1,41 @@
+name: GitHub Action for formating HCL files
+author: Krzysztof Szyper / ChristophShyper / shyper.pro
+description: GitHub Action automatically formatting all HCL and TF files
+inputs:
+  list:
+    description: List files containing formatting inconsistencies.
+    required: false
+    default: "false"
+  write:
+    description: Overwrite input files. Disabled if using check.
+    required: false
+    default: "true"
+  ignore:
+    description: Comma separated list of paths to ignore. Only for .hcl files.
+    required: false
+    default: ""
+  diff:
+    description: Display diffs of formatting changes.
+    required: false
+    default: "false"
+  check:
+    description: Check if files are malformatted.
+    required: false
+    default: "false"
+  recursive:
+    description: Also process files in subdirectories.
+    required: false
+    default: "true"
+  dir:
+    description: Path to be checked. Current dir as default.
+    required: false
+    default: "."
+outputs:
+  files_changed:
+    description: List of formatted files
+runs:
+  using: docker
+  image: docker://devopsinfra/action-format-hcl@sha256:9a77d0fc92d9c4693059a8a3ce5ccaa9d70b127fb5f79d03ce0bdbd986ab3a26 # v1.1.1
+branding:
+  color: purple
+  icon: upload-cloud

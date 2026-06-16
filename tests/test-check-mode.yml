@@ -1,0 +1,28 @@
+name: Test HCL check mode
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create well-formatted HCL file
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/hcl-check"
+          printf 'resource "aws_instance" "example" {\n  ami           = "ami-0c55b159cbfafe1f0"\n  instance_type = "t2.micro"\n}\n' > "$GITHUB_WORKSPACE/hcl-check/main.tf"
+
+      - id: action
+        uses: .
+        with:
+          dir: ./hcl-check
+          check: "true"
+          write: "false"
+          recursive: "true"
+
+      - name: Assert action completed in check mode
+        env:
+          FILES_CHANGED: ${{ steps.action.outputs.files_changed }}
+        run: |
+          echo "files_changed: $FILES_CHANGED"
+          echo "PASS: check mode completed successfully"
