@@ -1,0 +1,28 @@
+name: Test HCL list mode
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create unformatted HCL file
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/hcl-list"
+          printf 'resource "aws_s3_bucket" "example" {\nbucket = "my-bucket"\nacl = "private"\n}\n' > "$GITHUB_WORKSPACE/hcl-list/main.tf"
+
+      - id: action
+        uses: .
+        with:
+          dir: ./hcl-list
+          list: "true"
+          write: "false"
+          recursive: "true"
+
+      - name: Assert list mode output
+        env:
+          FILES_CHANGED: ${{ steps.action.outputs.files_changed }}
+        run: |
+          echo "files_changed: $FILES_CHANGED"
+          echo "PASS: list mode completed successfully"

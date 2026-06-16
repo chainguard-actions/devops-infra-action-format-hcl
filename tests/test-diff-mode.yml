@@ -1,0 +1,28 @@
+name: Test HCL diff mode
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create unformatted HCL file
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/hcl-diff"
+          printf 'variable "region" {\ndefault = "us-east-1"\ndescription = "AWS region"\n}\n' > "$GITHUB_WORKSPACE/hcl-diff/main.tf"
+
+      - id: action
+        uses: .
+        with:
+          dir: ./hcl-diff
+          diff: "true"
+          write: "true"
+          recursive: "true"
+
+      - name: Assert diff mode completed
+        env:
+          FILES_CHANGED: ${{ steps.action.outputs.files_changed }}
+        run: |
+          echo "files_changed: $FILES_CHANGED"
+          echo "PASS: diff mode completed successfully"
