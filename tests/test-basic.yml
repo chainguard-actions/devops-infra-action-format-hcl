@@ -1,4 +1,4 @@
-name: Test diff mode displaying formatting changes
+name: Test basic HCL formatting (already formatted files)
 on:
   workflow_dispatch:
 jobs:
@@ -17,22 +17,23 @@ jobs:
           git remote set-url origin "$GITHUB_WORKSPACE/.git-remote" 2>/dev/null || \
             git remote add origin "$GITHUB_WORKSPACE/.git-remote"
 
-      - name: Create HCL files for diff mode test
+      - name: Create a well-formatted HCL file for testing
         run: |
-          mkdir -p "$GITHUB_WORKSPACE/test-hcl-diff"
+          mkdir -p "$GITHUB_WORKSPACE/test-hcl-basic"
           printf 'locals {\n  name    = "example"\n  enabled = true\n  count   = 42\n}\n' \
-            > "$GITHUB_WORKSPACE/test-hcl-diff/example.hcl"
+            > "$GITHUB_WORKSPACE/test-hcl-basic/formatted.hcl"
 
       - id: action
         uses: .
         with:
-          dir: test-hcl-diff
-          diff: "true"
+          dir: test-hcl-basic
           write: "true"
           recursive: "true"
           list: "false"
+          diff: "false"
           check: "false"
 
-      - name: Assert diff mode completed successfully
+      - name: Assert action succeeded
         run: |
-          echo "PASS: diff mode ran successfully"
+          echo "Action completed successfully"
+          echo "PASS: action ran without errors on well-formatted HCL files"

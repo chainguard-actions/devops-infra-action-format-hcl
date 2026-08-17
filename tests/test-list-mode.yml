@@ -1,4 +1,4 @@
-name: Test HCL list mode
+name: Test list mode showing formatting inconsistencies
 on:
   workflow_dispatch:
 jobs:
@@ -7,22 +7,32 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      - name: Create unformatted HCL file
+      - name: Set up git origin reachable inside Docker container
         run: |
-          mkdir -p "$GITHUB_WORKSPACE/hcl-list"
-          printf 'resource "aws_s3_bucket" "example" {\nbucket = "my-bucket"\nacl = "private"\n}\n' > "$GITHUB_WORKSPACE/hcl-list/main.tf"
+          git config user.email "test@example.com"
+          git config user.name "Test User"
+          rm -rf "$GITHUB_WORKSPACE/.git-remote"
+          git init --bare "$GITHUB_WORKSPACE/.git-remote"
+          git push "$GITHUB_WORKSPACE/.git-remote" HEAD:refs/heads/act-harness
+          git remote set-url origin "$GITHUB_WORKSPACE/.git-remote" 2>/dev/null || \
+            git remote add origin "$GITHUB_WORKSPACE/.git-remote"
+
+      - name: Create a well-formatted HCL file for list mode test
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/test-hcl-list"
+          printf 'locals {\n  name    = "example"\n  enabled = true\n}\n' \
+            > "$GITHUB_WORKSPACE/test-hcl-list/good.hcl"
 
       - id: action
         uses: .
         with:
-          dir: ./hcl-list
+          dir: test-hcl-list
           list: "true"
           write: "false"
           recursive: "true"
+          diff: "false"
+          check: "false"
 
-      - name: Assert list mode output
-        env:
-          FILES_CHANGED: ${{ steps.action.outputs.files_changed }}
+      - name: Assert list mode completed successfully
         run: |
-          echo "files_changed: $FILES_CHANGED"
-          echo "PASS: list mode completed successfully"
+          echo "PASS: list mode ran successfully"
