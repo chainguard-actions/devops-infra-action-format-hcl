@@ -35,7 +35,7 @@ outputs:
     description: List of formatted files
 runs:
   using: docker
-  image: docker://devopsinfra/action-format-hcl@sha256:9a77d0fc92d9c4693059a8a3ce5ccaa9d70b127fb5f79d03ce0bdbd986ab3a26 # v1.1.1
+  image: docker://devopsinfra/action-format-hcl:v1.1.1@sha256:9a77d0fc92d9c4693059a8a3ce5ccaa9d70b127fb5f79d03ce0bdbd986ab3a26
 branding:
   color: purple
   icon: upload-cloud

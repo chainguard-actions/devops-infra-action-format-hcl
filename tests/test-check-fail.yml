@@ -1,4 +1,4 @@
-name: Test list mode - list files with formatting info
+name: Test check mode - malformatted files fail check
 on:
   workflow_dispatch:
 jobs:
@@ -19,15 +19,23 @@ jobs:
           git remote set-url origin "$GITHUB_WORKSPACE/.git-remote" 2>/dev/null || \
             git remote add origin "$GITHUB_WORKSPACE/.git-remote"
 
-      - name: Run list mode on formatted files
+      - name: Run check mode on malformatted file (expect failure)
         id: action
         uses: .
         with:
-          dir: tests/fixtures/formatted
-          list: "true"
+          dir: tests/fixtures/malformatted
+          check: "true"
           write: "false"
           recursive: "true"
+        continue-on-error: true
 
-      - name: Assert list mode succeeded
+      - name: Assert check mode failed as expected
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
         run: |
-          echo "PASS: list mode completed successfully"
+          echo "outcome: $OUTCOME"
+          if [ "$OUTCOME" != "failure" ]; then
+            echo "FAIL: expected action to fail on malformatted files but got: $OUTCOME"
+            exit 1
+          fi
+          echo "PASS: check mode correctly failed on malformatted files"

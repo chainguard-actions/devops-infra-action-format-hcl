@@ -1,4 +1,4 @@
-name: Test list mode - list files with formatting info
+name: Test check mode - well-formatted files pass check
 on:
   workflow_dispatch:
 jobs:
@@ -19,15 +19,15 @@ jobs:
           git remote set-url origin "$GITHUB_WORKSPACE/.git-remote" 2>/dev/null || \
             git remote add origin "$GITHUB_WORKSPACE/.git-remote"
 
-      - name: Run list mode on formatted files
+      - name: Run check mode on well-formatted files
         id: action
         uses: .
         with:
-          dir: tests/fixtures/formatted
-          list: "true"
+          dir: tests/fixtures/check-pass
+          check: "true"
           write: "false"
           recursive: "true"
 
-      - name: Assert list mode succeeded
+      - name: Assert check passed
         run: |
-          echo "PASS: list mode completed successfully"
+          echo "PASS: check mode succeeded on well-formatted files"

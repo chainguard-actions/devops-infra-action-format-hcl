@@ -1,0 +1,46 @@
+name: Test write mode - format malformatted HCL files
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 0
+
+      - name: Set up a git origin reachable inside the Docker container
+        run: |
+          git config user.email "test@example.com"
+          git config user.name "Test User"
+          rm -rf "$GITHUB_WORKSPACE/.git-remote"
+          git init --bare "$GITHUB_WORKSPACE/.git-remote"
+          git push "$GITHUB_WORKSPACE/.git-remote" HEAD:refs/heads/act-harness
+          git remote set-url origin "$GITHUB_WORKSPACE/.git-remote" 2>/dev/null || \
+            git remote add origin "$GITHUB_WORKSPACE/.git-remote"
+
+      - name: Create a malformatted HCL file in a temp directory
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/tmp-hcl-test"
+          printf 'variable "name" {\ndescription = "The name variable"\ntype = string\ndefault = "example"\n}\n' \
+            > "$GITHUB_WORKSPACE/tmp-hcl-test/main.tf"
+          echo "Created malformatted file:"
+          cat "$GITHUB_WORKSPACE/tmp-hcl-test/main.tf"
+
+      - name: Run format action with write=true on malformatted file
+        id: action
+        uses: .
+        with:
+          dir: tmp-hcl-test
+          write: "true"
+          recursive: "true"
+
+      - name: Assert file was formatted
+        run: |
+          echo "File content after formatting:"
+          cat "$GITHUB_WORKSPACE/tmp-hcl-test/main.tf"
+          if [ ! -f "$GITHUB_WORKSPACE/tmp-hcl-test/main.tf" ]; then
+            echo "FAIL: formatted file not found"
+            exit 1
+          fi
+          echo "PASS: file was processed by format-hcl"
